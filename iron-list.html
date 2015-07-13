@@ -121,6 +121,33 @@ bound from the model object provided to the template scope):
     properties: {
 
       /**
+       * Distance from the bottom (or right, for horizontal) bound of the scroller
+       * where the "lower trigger" will fire.
+       *
+       * @attribute lowerThreshold
+       * @type integer
+       * @default null
+       */
+      lowerThreshold: {
+        type: Number,
+        notify: true
+      },
+
+      /**
+       * Read-only value that tracks the triggered state of the lower threshold
+       *
+       * @attribute lowerTriggered
+       * @type boolean
+       * @default false
+       */
+      lowerTriggered: {
+        type: Boolean,
+        value: false,
+        notify: true,
+        readOnly: true
+      },
+
+      /**
        * An array containing items determining how many instances of the template
        * to stamp and that that each template instance should bind to.
        */
@@ -439,6 +466,15 @@ bound from the model object provided to the template scope):
         var virtualEnd = this._virtualEnd;
         var lastVirtualItemIndex = this._virtualCount-1;
 
+        //core-threshold adaptation
+        var bottom = scrollTop + this._viewportSize;
+        if (this.lowerThreshold != null) {
+          if (!this.lowerTriggered && (this._scrollSize - bottom) < this.lowerThreshold) {
+            this._setLowerTriggered(true);
+            this.fire('lower-trigger');
+          }
+        }
+
         direction = SCROLL_DIRECTION_DOWN;
         recycledTileSet = [];
 
@@ -469,6 +505,25 @@ bound from the model object provided to the template scope):
         this._virtualStart = this._virtualStart + recycledTiles;
         this._update(recycledTileSet, movingUp);
       }
+    },
+
+
+    /**
+     * Clear the lower threshold, following a `lower-trigger` event.
+     *
+     * @method clearLower
+     */
+    clearLower: function(waitForMutation) {
+      this._setLowerTriggered(false); //poor replacement for below, I think reason item's don't get loaded when scrolling too fast
+      // if (waitForMutation) {
+      //   this._waitForMutation(function() {
+      //     this.clearLower();
+      //   }.bind(this));
+      // } else {
+      //   requestAnimationFrame(function() {
+      //     this.lowerTriggered = false;
+      //   }.bind(this));
+      // }
     },
 
     _update: function(recycledTileSet, movingUp) {
