@@ -507,23 +507,29 @@ bound from the model object provided to the template scope):
       }
     },
 
-
-    /**
+   /**
      * Clear the lower threshold, following a `lower-trigger` event.
      *
      * @method clearLower
      */
     clearLower: function(waitForMutation) {
-      this._setLowerTriggered(false); //poor replacement for below, I think reason item's don't get loaded when scrolling too fast
-      // if (waitForMutation) {
-      //   this._waitForMutation(function() {
-      //     this.clearLower();
-      //   }.bind(this));
-      // } else {
-      //   requestAnimationFrame(function() {
-      //     this.lowerTriggered = false;
-      //   }.bind(this));
-      // }
+      if (waitForMutation) {
+        this._waitForMutation(function() {
+          this.clearLower();
+        }.bind(this));
+      } else {
+        this.async(function() {
+          this._setLowerTriggered(false);
+        });
+      }
+    },
+
+    _waitForMutation: function(listener) {
+      var observer = new MutationObserver(function(mutations) {
+        listener.call(this, observer, mutations);
+        observer.disconnect();
+      }.bind(this));
+      observer.observe(this._scrollTarget, {attributes: true, childList: true, subtree: true});
     },
 
     _update: function(recycledTileSet, movingUp) {
