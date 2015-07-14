@@ -529,7 +529,7 @@ bound from the model object provided to the template scope):
         listener.call(this, observer, mutations);
         observer.disconnect();
       }.bind(this));
-      observer.observe(this._scrollTarget, {attributes: true, childList: true, subtree: true});
+      observer.observe(this._scroller, {attributes: true, childList: true, subtree: true});
     },
 
     _update: function(recycledTileSet, movingUp) {
